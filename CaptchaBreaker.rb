@@ -1,3 +1,4 @@
+# Based on https://github.com/eidge/ruby-captcha-breaker/blob/master/CaptchaBreaker.rb
 require 'RMagick'
 require 'rtesseract'
 
