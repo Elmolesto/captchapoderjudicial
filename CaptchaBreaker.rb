@@ -24,7 +24,7 @@ class CaptchaBreaker
     @image = remove_blacks(@image)
 
     #exporto la imagen
-    @image.write("to_blob" + @index + ".png")
+    #@image.write("to_blob" + @index + ".png")
 
     # Use tesseract to read the characters
     @image.format = 'JPEG'
@@ -51,10 +51,6 @@ class CaptchaBreaker
       1.times { @image = erode(@image) }
       @image = remove_blacks(@image)
       1.times { @image = erode(@image, :inflate) }
-
-
-      #exporto la imagen
-      @image.write("to_blob" + @index + "_2.png")
 
       # Use tesseract to read the characters
       @image.format = 'JPEG'
