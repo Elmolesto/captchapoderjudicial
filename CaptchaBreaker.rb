@@ -8,22 +8,16 @@ class CaptchaBreaker
   end
 
   def break
-    #borro la barra gris
+    #remove gray pixels
     @image = @image.opaque_channel('#5e5e5e', 'white', invert=false, fuzz=10000 )
-
-    #paso a gray
+    #to grayscale
     @image = @image.quantize(3, Magick::GRAYColorspace)
-
-    #completo barra borrada
     @image = complete_graybar(@image)
-
-
-    #dejo el times para ir probando con algunos pasos más
     @image = erode(@image)
     @image = erode(@image, :inflate)
     @image = remove_blacks(@image)
 
-    #exporto la imagen
+    #exports image
     #@image.write("to_blob" + @index + ".png")
 
     # Use tesseract to read the characters
@@ -31,10 +25,8 @@ class CaptchaBreaker
     tesseract = RTesseract.new('options: :digits')
     tesseract.from_blob @image.to_blob
 
-    #armo array
     captcha = tesseract.to_s_without_spaces.split(//)
-
-    #elimino todo lo que no es numero
+    #remove non numeric characters
     captcha.each_with_index do |value, i|
       if '0123456789'.split('').include?(value)
         captcha[i] = value
@@ -43,10 +35,9 @@ class CaptchaBreaker
       end
     end
 
-    #paso a string
+    #convert to string
     captcha = captcha.join
 
-    #si no tengo 6 numeros, le paso otro filtro para inflar y vuelvo a reconocer
     if captcha.length != 6
       1.times { @image = erode(@image) }
       @image = remove_blacks(@image)
@@ -68,8 +59,7 @@ class CaptchaBreaker
       captcha = captcha.join
     end
 
-    #muestro
-    return captcha
+    captcha
   end
 
   private
@@ -107,12 +97,11 @@ class CaptchaBreaker
   end
 
   def complete_graybar(image)
-    #intento completar el espacio vaciodo por la barra gris
+    #fill with black the gray deleted pixels according to the context
     pixels = get_pixels(image)
     black = pixels.uniq.sort.first
     i = 1800
-    gris = 30000
-    110.times {
+    105.times {
       cerca = 0
       if pixels[i - 120] == black
         cerca = cerca + 1
@@ -133,11 +122,10 @@ class CaptchaBreaker
       i = i + 1
     }
     image_from_pixels(pixels)
-
   end
 
   def remove_blacks(image)
-    #borramos los puntos negros que quedan sueltos
+    #delete black isoleted points
     pixels = get_pixels(image)
     black = pixels.uniq.sort.last
 
@@ -170,7 +158,5 @@ class CaptchaBreaker
       pixels[i] = black if cerca > 7
     end
     image_from_pixels(pixels)
-
   end
-
 end
