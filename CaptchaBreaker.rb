@@ -36,7 +36,7 @@ class CaptchaBreaker
 
     #elimino todo lo que no es numero
     captcha.each_with_index do |value, i|
-      if value == '0' || value == '1' || value == '2' || value == '3' || value == '4' || value == '5' || value == '6' || value == '7' || value == '8' || value == '9'
+      if '0123456789'.split('').include?(value)
         captcha[i] = value
       else
         captcha[i] = ""
@@ -63,7 +63,7 @@ class CaptchaBreaker
       captcha = tesseract.to_s_without_spaces.split(//)
 
       captcha.each_with_index do |value, i|
-        if value == '0' || value == '1' || value == '2' || value == '3' || value == '4' || value == '5' || value == '6' || value == '7' || value == '8' || value == '9'
+        if '0123456789'.split('').include?(value)
           captcha[i] = value
         else
           captcha[i] = ""
