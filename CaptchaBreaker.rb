@@ -1,6 +1,6 @@
 # Based on https://github.com/eidge/ruby-captcha-breaker/blob/master/CaptchaBreaker.rb
 require 'RMagick'
-require 'rtesseract'
+#require 'rtesseract'
 
 class CaptchaBreaker
   def initialize(image_file, index)
@@ -10,54 +10,25 @@ class CaptchaBreaker
 
   def break
     #remove gray pixels
-    @image = @image.opaque_channel('#5e5e5e', 'white', invert=false, fuzz=10000 )
+    #@image = @image.opaque_channel('#5e5e5e', 'white', invert=false, fuzz=10000 )
     #to grayscale
     @image = @image.quantize(3, Magick::GRAYColorspace)
-    @image = complete_graybar(@image)
+    #@image = complete_graybar(@image)
     @image = erode(@image)
-    @image = erode(@image, :inflate)
-    @image = remove_blacks(@image)
-
-    #exports image
     #@image.write("to_blob" + @index + ".png")
-
-    # Use tesseract to read the characters
-    @image.format = 'JPEG'
-    tesseract = RTesseract.new('options: :digits')
-    tesseract.from_blob @image.to_blob
-
-    captcha = tesseract.to_s_without_spaces.split(//)
-    #remove non numeric characters
-    captcha.each_with_index do |value, i|
-      if '0123456789'.split('').include?(value)
-        captcha[i] = value
-      else
-        captcha[i] = ""
+    #@image = remove_blacks(@image)
+    #compare with original numbers
+    for i in 0..5
+      crop = @image.crop(15 + (i * 13),8,11,16, true)
+      #crop.write("number_cropped_#{i}.jpg")
+      errors = {}
+      for j in 0..9
+        original_number = Magick::Image.read("./originals/#{j}.jpg").first
+        mean_error_per_pixel = crop.difference(original_number)
+        errors[j] = mean_error_per_pixel[1]
       end
-    end
-
-    #convert to string
-    captcha = captcha.join
-
-    if captcha.length != 6
-      1.times { @image = erode(@image) }
-      @image = remove_blacks(@image)
-      1.times { @image = erode(@image, :inflate) }
-
-      # Use tesseract to read the characters
-      @image.format = 'JPEG'
-      tesseract = RTesseract.new('options: :digits')
-      tesseract.from_blob @image.to_blob
-      captcha = tesseract.to_s_without_spaces.split(//)
-
-      captcha.each_with_index do |value, i|
-        if '0123456789'.split('').include?(value)
-          captcha[i] = value
-        else
-          captcha[i] = ""
-        end
-      end
-      captcha = captcha.join
+      number = errors.group_by{|k, v| v}.min_by{|k, v| k}.last.to_h.keys.join
+      captcha = captcha.to_s + number.to_s
     end
 
     captcha
