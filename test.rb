@@ -5,7 +5,7 @@ require_relative 'CaptchaBreaker'
 test "solves sample1 image" do
   ok = 0
   test_quantity = 0
-  Dir["./images_case1/*.jpg"].each_with_index do |filename, i|
+  Dir["./images_test/*.jpg"].each_with_index do |filename, i|
     solution = CaptchaBreaker.new(filename).break
     test_quantity = i + 1
     if solution == File.basename(filename, ".jpg")
