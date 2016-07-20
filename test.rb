@@ -4,22 +4,17 @@ require_relative 'CaptchaBreaker'
 
 test "solves sample1 image" do
   ok = 0
-  testquantity = 0
+  test_quantity = 0
   Dir["./images_case1/*.jpg"].each_with_index do |filename, i|
-    solution = CaptchaBreaker.new(filename, i).break
-    testquantity = i + 1
+    solution = CaptchaBreaker.new(filename).break
+    test_quantity = i + 1
     if solution == File.basename(filename, ".jpg")
       ok = ok + 1
-
     else
-      print "| "
-      print solution
-      print " - fail - "
-      print File.basename(filename, ".jpg")
-      print "| "
+      puts "FAIL - resolve: #{solution} - original: #{File.basename(filename, ".jpg")}"
     end
     #assert_equal(value, solution)
   end
-  confianza = (ok * 100 / testquantity)
-  print "|||||| " + confianza.to_s + "% ||||||"
+  confidence_level = (ok * 100 / test_quantity)
+  puts "|||| Confidence Level: #{confidence_level.to_s}% ||||"
 end
