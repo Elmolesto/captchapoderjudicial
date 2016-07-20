@@ -7,21 +7,9 @@ class CaptchaBreaker
   end
 
   def break
-    #to grayscale
-    @image = @image.quantize(3, Magick::GRAYColorspace)
-    @image = erode(@image)
-    #compare with original numbers
-    for i in 0..5
-      crop = @image.crop(15 + (i * 13),8,11,16, true)
-      errors = {}
-      for j in 0..9
-        original_number = Magick::Image.read("./originals/#{j}.jpg").first
-        mean_error_per_pixel = crop.difference(original_number)
-        errors[j] = mean_error_per_pixel[1]
-      end
-      number = errors.group_by{|k, v| v}.min_by{|k, v| k}.last.to_h.keys.join
-      captcha = captcha.to_s + number.to_s
-    end
+    @image = remove_image_noise(@image)
+    characters = slices(@image)
+    captcha = (0..5).map{|i| solve(characters[i])}.join
 
     captcha
   end
@@ -52,5 +40,30 @@ class CaptchaBreaker
     end
 
     image_from_pixels(pixels)
+  end
+
+  def remove_image_noise(image)
+    image = image.quantize(3, Magick::GRAYColorspace)
+    image = erode(image)
+  end
+
+  def original_numbers
+    @original_numbers ||= (0..9).map{|i| Magick::Image.read("./originals/#{i}.jpg").first}
+  end
+
+  def slices(image)
+    (0..5).map{|i| image.crop(15 + (i * 13),8,11,16, true)}
+  end
+
+  def solve(slice)
+    errors = {}
+    original_numbers
+    for i in 0..9
+      mean_error_per_pixel = slice.difference(original_numbers[i])
+      errors[i] = mean_error_per_pixel[1]
+    end
+    number = errors.group_by{|k, v| v}.min_by{|k, v| k}.last.to_h.keys.join
+
+    number
   end
 end
